@@ -1,10 +1,27 @@
 #!/bin/bash
-URL=$1 # the URL to stream
-SEGMENT_TIME=${2-1800} # how often we want to split up the recording, in seconds
-DIR=${3-"."} # the directory we want to save the stream files to
 
-if [ "$1" == "" ]; then
-    echo "Usage: ./stream.sh streaming_url [segment_time [output_directory]]"
+URL="" # the URL to stream
+SEGMENT_TIME=1800 # how often we want to split up the recording, in seconds
+DIR="." # the directory we want to save the stream files to
+
+for arg; do
+    if [[ "$arg" == "-url" ]]; then
+        shift
+        URL=$1
+        shift
+    elif [[ "$arg" == "-segment_time" ]]; then
+        shift
+        SEGMENT_TIME=$1
+        shift
+    elif [[ "$arg" == "-dir" ]]; then
+        shift
+        DIR=$1
+        shift
+    fi
+done
+
+if [[ "$@" == "" || "$URL" == "" ]]; then
+    echo "Usage: ./stream.sh -url streaming_url [-segment_time time_in_seconds] [-dir output_directory]"
     exit
 fi
 
