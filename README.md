@@ -9,17 +9,17 @@ You will need (or at least, this is what I used):
 
 - ffmpeg 3.x (version 3.x isn't usually available through package managers)
 - SoX 14.x
-- mpg123 1.x
 
 Start two terminals in this directory.
 
-In one, run `./stream.sh` to start the stream recording.
+In one, run `./stream.sh -url URL_TO_RECORD` to start the stream recording.
 
-Once you hear something interesting and want to hear it again, run `./getlastminute.sh` to get the last 60 seconds
+Once you hear something interesting and want to hear it again, run `./replay.sh` to get the last 60 seconds
 of audio (soon to be a variable amount). If you want to get the last 60 seconds of actual transmissions (with
-silence >1s truncated to 0.5s) then run `./getlastminute.sh nosilence`.
+silence >0.5s truncated to 0.5s) then run `./replay.sh -trimsilence`.
 
-After the last minute of audio is pulled, it will automatically play with mpg123.
+Execute `./stream.sh -h` for help with streaming or `./replay.sh -h` for help with replaying. The usage will
+be displayed.
 
 ## Project Goal
 

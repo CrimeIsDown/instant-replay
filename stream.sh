@@ -20,8 +20,8 @@ for arg; do
     fi
 done
 
-if [[ "$@" == "" || "$URL" == "" ]]; then
-    echo "Usage: ./stream.sh -url streaming_url [-segment_time time_in_seconds] [-dir output_directory]"
+if [[ "$URL" == "" || "$1" == "-h" || "$1" == "--help" ]]; then
+    echo "Usage: ./stream.sh -url streaming_url [-segment_time 1800] [-dir .]"
     exit
 fi
 
