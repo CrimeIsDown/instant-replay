@@ -5,6 +5,7 @@ const child_process = require('child_process');
 const crypto = require('crypto');
 const fs = require('fs');
 const http = require('http');
+const querystring = require('querystring');
 const HOST = process.env.SERVER_HOST || 'localhost';
 const PORT = process.env.SERVER_PORT || 8080;
 const DEBUG = process.env.APP_DEBUG || true;
@@ -63,9 +64,17 @@ function serveReplay(filename, stream_name, response) {
 
 function handleRequest(request, response) {
   if (request.url.indexOf('/replay/')==0 && request.method == 'GET') {
-    let stream_name = request.url.substring('/rewind/'.length);
+    let stream_name = request.url.substring('/replay/'.length);
+    let opts = {
+      duration: '60',
+      trimsilence: 'false'
+    };
+    if (request.url.indexOf('?')!==-1) {
+      stream_name = request.url.substring('/replay/'.length, request.url.indexOf('?'));
+      opts = querystring.parse(request.url.substring(request.url.indexOf('?')+1));
+    }
     if (streams.hasOwnProperty(stream_name)) {
-      getReplay(stream_name, '60', false, (filename) => {
+      getReplay(stream_name, opts.duration, opts.trimsilence=='true', (filename) => {
         serveReplay(filename, stream_name, response);
       });
     } else {
