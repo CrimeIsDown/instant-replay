@@ -2,13 +2,24 @@
 'use strict';
 
 const child_process = require('child_process');
+const crypto = require('crypto');
 const fs = require('fs');
 const http = require('http');
-const PORT = 8080;
+const HOST = process.env.SERVER_HOST || 'localhost';
+const PORT = process.env.SERVER_PORT || 8080;
+const DEBUG = process.env.APP_DEBUG || true;
 
 const streams = require('./online_streams.json');
 
-function startRecording() {
+function log(message, isError) {
+  if (isError) {
+    console.error(message);
+  } else {
+    console.log(message);
+  }
+}
+
+function startRecording(callback) {
   for (let key in streams) {
     if (streams.hasOwnProperty(key)) {
       let stream = streams[key];
@@ -17,22 +28,72 @@ function startRecording() {
       }
       let proc = child_process.spawn('bash', ['./stream.sh', '-url', stream.directStreamUrl, '-dir', 'streams/' + key]);
       proc.stdout.on('data', (data) => {
-        console.log(`stdout: ${data}`);
+        log(`stdout: ${data}`);
       });
       proc.stderr.on('data', (data) => {
-        console.log(`stderr: ${data}`);
+        log(`stderr: ${data}`, true);
       });
       proc.on('close', (code) => {
-        console.log(`child process exited with code ${code}`);
+        log(`child process exited with code ${code}`);
       });
     }
   }
+  callback();
+}
+
+function getReplay(stream_name, duration, trim_silence, callback) {
+  let token = crypto.randomBytes(16).toString('hex');
+  let outputfile = 'output/'+token+'.mp3';
+  let replayopts = [
+    './replay.sh',
+    '-duration', duration,
+    '-original', 'streams/'+stream_name+'/0.mp3',
+    '-output', outputfile
+  ];
+  if (trim_silence) {
+    replayopts.push('-trimsilence');
+  }
+  let proc = child_process.spawn('bash', replayopts);
+  proc.stdout.on('data', (data) => {
+		log(`stdout: ${data}`);
+	});
+	proc.stderr.on('data', (data) => {
+		log(`stderr: ${data}`, true);
+	});
+	proc.on('close', (code) => {
+		log(`child process exited with code ${code}`);
+    callback(outputfile);
+	});
+}
+
+function serveReplay(filename, stream_name, response) {
+  fs.readFile(filename, 'binary', (err, file) => {
+    if (err) {
+      response.statusCode = 500;
+      response.setHeader('Content-Type', 'text/plain');
+      response.write(err + '\n');
+      response.end();
+      return;
+    }
+    response.statusCode = 200;
+    response.setHeader('Content-Type', 'audio/mpeg');
+    response.setHeader('Content-Disposition', 'inline; filename="'+stream_name+'.mp3"');
+    response.write(file, 'binary');
+    response.end();
+  });
 }
 
 function handleRequest(request, response) {
-  if (request.url == '/hi' && request.method == 'GET') {
-    response.setHeader('Content-Type', 'text/plain');
-    response.end("Welcome to the server!");
+  if (request.url.indexOf('/rewind/')==0 && request.method == 'GET') {
+    let stream_name = request.url.substring('/rewind/'.length);
+    if (streams.hasOwnProperty(stream_name)) {
+      getReplay(stream_name, '60', false, (filename) => {
+        serveReplay(filename, stream_name, response);
+      });
+    } else {
+      response.statusCode = 400;
+      response.end();
+    }
   } else {
     response.statusCode = 403;
     response.end();
@@ -41,8 +102,10 @@ function handleRequest(request, response) {
 
 let server = http.createServer(handleRequest);
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   console.log("Server listening on: http://localhost:%s", PORT);
 });
 
-startRecording();
+startRecording(() => {
+  console.log("Recording started");
+});
