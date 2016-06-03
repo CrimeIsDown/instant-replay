@@ -62,7 +62,7 @@ function serveReplay(filename, stream_name, response) {
 }
 
 function handleRequest(request, response) {
-  if (request.url.indexOf('/rewind/')==0 && request.method == 'GET') {
+  if (request.url.indexOf('/replay/')==0 && request.method == 'GET') {
     let stream_name = request.url.substring('/rewind/'.length);
     if (streams.hasOwnProperty(stream_name)) {
       getReplay(stream_name, '60', false, (filename) => {

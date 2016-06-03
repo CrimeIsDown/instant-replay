@@ -3,7 +3,7 @@
 END_OFFSET=60
 TRIMSILENCE=0
 ORIGINAL=""
-OUTPUT="output/lastminute.mp3" # the name of our output file (@TODO: needs to be unique)
+OUTPUT="output/lastminute.mp3" # the name of our output file
 
 for arg; do
     if [[ "$arg" == "-duration" ]]; then
@@ -40,20 +40,20 @@ if [[ "$ORIGINAL" == "" ]]; then
 fi
 
 # let's get the last 10 minutes (600s) of the stream so we don't work with a very large file
-ffmpeg -sseof -600 -t 600 -i $ORIGINAL -f mp3 - |
+ffmpeg -loglevel warning -sseof -600 -t 600 -i $ORIGINAL -f mp3 - |
 
 # check if the user doesn't want much silence in their recording (otherwise just save the output)
-( [[ $TRIMSILENCE -gt 0 ]] && sox -t mp3 - -t mp3 $OUTPUT.tmp silence -l 1 0.5 1.07% -1 0.5 1.07% || cat > $OUTPUT.tmp )
+( [[ $TRIMSILENCE -gt 0 ]] && sox -t mp3 - $OUTPUT_temp.mp3 silence -l 1 0.5 1.07% -1 0.5 1.07% || cat > $OUTPUT_temp.mp3 )
 # remove the silence from the last 10 minutes of audio
 # silence longer than 0.5s will get truncated to 0.5s
 # "silence" is defined as being over the 1.07% threshold
 # (arrived at this number thru trial-and-error working with the Zone 10 stream)
 
 # get the last 60 seconds of the mp3, and write it to our output file
-ffmpeg -sseof -$END_OFFSET -t $END_OFFSET -i $OUTPUT.tmp -c copy $OUTPUT -y
+ffmpeg -loglevel warning -sseof -$END_OFFSET -t $END_OFFSET -i $OUTPUT_temp.mp3 -c copy $OUTPUT -y
 # this cannot be done with pipes because we need to use sseof
 
 # remove the temporary file
-rm $OUTPUT.tmp
+rm $OUTPUT_temp.mp3
 
 echo "File generated: $OUTPUT"
