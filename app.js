@@ -19,28 +19,6 @@ function log(message, isError) {
   }
 }
 
-function startRecording(callback) {
-  for (let key in streams) {
-    if (streams.hasOwnProperty(key)) {
-      let stream = streams[key];
-      if (!fs.existsSync('./streams/' + key)) {
-        fs.mkdirSync('./streams/' + key);
-      }
-      let proc = child_process.spawn('bash', ['./stream.sh', '-url', stream.directStreamUrl, '-dir', 'streams/' + key]);
-      proc.stdout.on('data', (data) => {
-        log(`stdout: ${data}`);
-      });
-      proc.stderr.on('data', (data) => {
-        log(`stderr: ${data}`, true);
-      });
-      proc.on('close', (code) => {
-        log(`child process exited with code ${code}`);
-      });
-    }
-  }
-  callback();
-}
-
 function getReplay(stream_name, duration, trim_silence, callback) {
   let token = crypto.randomBytes(16).toString('hex');
   let outputfile = 'output/'+token+'.mp3';
@@ -104,8 +82,4 @@ let server = http.createServer(handleRequest);
 
 server.listen(PORT, HOST, () => {
   console.log("Server listening on: http://localhost:%s", PORT);
-});
-
-startRecording(() => {
-  console.log("Recording started");
 });
