@@ -5,10 +5,24 @@ Warning: This software is experimental. Use at your own risk.
 
 ## Getting Started
 
+### Software required
+
 You will need (or at least, this is what I used):
 
 - ffmpeg 3.x (version 3.x isn't usually available through package managers)
 - SoX 14.x
+- LAME mp3 encoding library
+
+To install all of these on Ubuntu 16.04:
+
+```shell
+sudo add-apt-repository ppa:djcj/hybrid
+sudo add-apt-repository multiverse
+sudo apt-get update
+sudo apt-get install ffmpeg sox lame
+```
+
+### Using the shell scripts
 
 Start two terminals in this directory.
 
@@ -20,6 +34,22 @@ silence >0.5s truncated to 0.5s) then run `./replay.sh -trimsilence`.
 
 Execute `./stream.sh -h` for help with streaming or `./replay.sh -h` for help with replaying. The usage will
 be displayed.
+
+### Using the web server
+
+1. In one terminal, run `node record.js` to start recording all the
+   streams in `online_streams.json`.
+2. In another terminal, run `SERVER_HOST=0.0.0.0 SERVER_PORT=8080 APP_DEBUG=false node app.js`
+   to start the web server, modifying the different environment
+   variables to suit your needs.
+
+The server has the following URL structure:
+
+`http://SERVER_HOST:SERVER_PORT/replay/STREAM_KEY?duration=DURATION_IN_SECONDS&trimsilence=TRUE_OR_FALSE`
+
+where `STREAM_KEY` is one of the keys for the main JSON object in the
+`online_streams.json` file. For example:
+`http://SERVER_HOST:SERVER_PORT/replay/Z1?duration=60&trimsilence=true`
 
 ## Project Goal
 
