@@ -90,5 +90,5 @@ function handleRequest(request, response) {
 let server = http.createServer(handleRequest);
 
 server.listen(PORT, HOST, () => {
-  console.log("Server listening on: http://localhost:%s", PORT);
+  console.log("Server listening on: http://%s:%s", HOST, PORT);
 });
