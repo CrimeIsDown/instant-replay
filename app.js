@@ -6,9 +6,9 @@ const crypto = require('crypto');
 const fs = require('fs');
 const http = require('http');
 const querystring = require('querystring');
-const HOST = process.env.SERVER_HOST || 'localhost';
+const HOST = process.env.SERVER_HOST || '0.0.0.0';
 const PORT = process.env.SERVER_PORT || 8080;
-const DEBUG = process.env.APP_DEBUG || true;
+const DEBUG = process.env.APP_DEBUG || false;
 
 const streams = require('./online_streams.json');
 
